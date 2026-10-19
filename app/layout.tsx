@@ -15,8 +15,19 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MG Creations — Curated Storefront",
-  description: "Curated custom apparel, graphic tees, mugs, totes, and accessories.",
+  metadataBase: new URL("https://mgcreations.store"),
+  title: {
+    default: "MG Creations — Curated Storefront",
+    template: "%s — MG Creations",
+  },
+  description: "Curated custom apparel, graphic tees, mugs, totes, and accessories. Shop MG Creations.",
+  alternates: { canonical: "https://mgcreations.store" },
+  openGraph: {
+    siteName: "MG Creations",
+    type: "website",
+    locale: "en_US",
+    url: "https://mgcreations.store",
+  },
 };
 
 export default function RootLayout({

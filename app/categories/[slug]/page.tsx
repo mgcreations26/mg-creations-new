@@ -30,7 +30,7 @@ export default async function IndividualCategoryPage({ params }: CategoryPagePro
         return cSlug === targetSlug || cSlug === normalizedTarget || cSlug.replace(/s$/, "") === normalizedTarget;
     });
 
-    // Filter products by matching category name, title, style, or theme
+    // Filter products by matching category slug, name, title, style, or theme
     const categoryProducts = products.filter((p) => {
         const catLower = (p.category || "").toLowerCase().trim();
         const catSlug = catLower.replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
@@ -38,18 +38,20 @@ export default async function IndividualCategoryPage({ params }: CategoryPagePro
         const styleLower = (p.style || "").toLowerCase();
         const themeLower = (p.theme || "").toLowerCase();
 
+        // Match on category slug (exact, singular, or plural forms)
         const matchesCategory =
             catSlug === targetSlug ||
             catSlug === normalizedTarget ||
-            catLower.includes("mug") ||
-            catLower === targetSlug;
+            catSlug.replace(/s$/, "") === normalizedTarget ||
+            catLower === targetSlug.replace(/-/g, " ");
 
-        const matchesTitle =
-            titleLower.includes(targetSlug.replace(/-/g, " ")) ||
-            titleLower.includes(normalizedTarget);
+        // Match on product title containing the slug keyword
+        const keyword = normalizedTarget.replace(/-/g, " ");
+        const matchesTitle = titleLower.includes(keyword);
 
-        const matchesStyle = styleLower.includes(normalizedTarget);
-        const matchesTheme = themeLower.includes(normalizedTarget);
+        // Match on style or theme
+        const matchesStyle = styleLower === normalizedTarget;
+        const matchesTheme = themeLower === normalizedTarget;
 
         return matchesCategory || matchesTitle || matchesStyle || matchesTheme;
     });

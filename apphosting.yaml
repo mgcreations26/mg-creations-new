@@ -8,17 +8,31 @@ runConfig:
   # memoryMiB: 512
 
 # Environment variables and secrets.
-# env:
-  # Configure environment variables.
-  # See https://firebase.google.com/docs/app-hosting/configure#user-defined-environment
-  # - variable: MESSAGE
-  #   value: Hello world!
-  #   availability:
-  #     - BUILD
-  #     - RUNTIME
+env:
+  # Public environment variables (available at build & runtime)
+  - variable: NEXT_PUBLIC_GOOGLE_SHEET_ID
+    value: "1qKm3c24mTWiol88rHdiQnUY5tzNuNgygzFg2TCSMcWw"
+    availability:
+      - BUILD
+      - RUNTIME
 
-  # Grant access to secrets in Cloud Secret Manager.
-  # You can create secrets with the CLI command `firebase apphosting:secrets:set <secretName>`.
-  # See https://firebase.google.com/docs/app-hosting/configure#secret-parameters
-  # - variable: MY_SECRET
-  #   secret: mySecretRef
+  - variable: NEXT_PUBLIC_APPS_SCRIPT_URL
+    value: "https://script.google.com/macros/s/AKfycbwjnPkVWaBFzbnerMNPG4y50UN2aa3gy-Tkx9_BRYsyuEjFzhYoESzHFEBKXMl5gs-8/exec"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_SITE_URL
+    value: "https://mgcreations.store"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # Secrets stored in Cloud Secret Manager
+  # Run: npx firebase-tools@latest apphosting:secrets:set STRIPE_SECRET_KEY
+  # Run: npx firebase-tools@latest apphosting:secrets:set STRIPE_WEBHOOK_SECRET
+  - variable: STRIPE_SECRET_KEY
+    secret: STRIPE_SECRET_KEY
+
+  - variable: STRIPE_WEBHOOK_SECRET
+    secret: STRIPE_WEBHOOK_SECRET
