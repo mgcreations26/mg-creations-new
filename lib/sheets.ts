@@ -5,8 +5,8 @@ export type Product = {
     description: string;
     price: number;
     imageUrl: string;
-    productType: string; // Column 7 mapped to Product Type
-    color: string;       // Column 8 mapped to Color variants
+    productType: string;
+    color: string;
     size: string;
     category: string;
     style: string;
@@ -35,10 +35,12 @@ export type Category = {
 };
 
 const SHEET_ID = process.env.NEXT_PUBLIC_GOOGLE_SHEET_ID;
+const APPS_SCRIPT_URL = process.env.NEXT_PUBLIC_APPS_SCRIPT_URL;
 
 const GIDS = {
     WebsiteListings: "1655061874",
     Moods_Master: "1976545941",
+    Categories: "2040368225",
     Theme: "262387479",
 };
 
@@ -50,9 +52,14 @@ export async function getProducts(): Promise<Product[]> {
         rows = [];
     }
 
-    if (!rows || rows.length <= 1) return [];
+    if (!rows || rows.length === 0) return [];
 
-    const dataRows = rows.slice(1);
+    // Filter out header row if present in rows
+    const dataRows = rows.filter((row: any) => {
+        const firstCol = String(row.c?.[0]?.v ?? "").toLowerCase();
+        return firstCol !== "product id" && firstCol !== "";
+    });
+
     const mapped = dataRows
         .filter((row: any) => row.c && row.c[2] && row.c[2].v)
         .map((row: any) => {
@@ -71,10 +78,10 @@ export async function getProducts(): Promise<Product[]> {
                 description: String(row.c[3]?.v ?? ""),
                 price: parseFloat(rawPrice) || 0,
                 imageUrl: String(row.c[6]?.v ?? ""),
-                productType: String(row.c[7]?.v ?? ""), // Col 7 = Product Type
+                productType: String(row.c[7]?.v ?? ""), // Col 7 = Category/Product Type
+                category: String(row.c[7]?.v ?? "General"), // Col 7 = Category
                 color: String(row.c[8]?.v ?? ""),       // Col 8 = Color
-                size: String(row.c[8]?.v ?? ""),        // Size fallback
-                category: String(row.c[9]?.v ?? "General"),
+                size: String(row.c[9]?.v ?? ""),        // Col 9 = Size
                 style: String(row.c[10]?.v ?? ""),
                 brand: String(row.c[11]?.v ?? ""),
                 mood: String(row.c[12]?.v ?? "General").trim(),
@@ -169,15 +176,45 @@ export async function getMoods(): Promise<Mood[]> {
 }
 
 export async function getCategories(): Promise<Category[]> {
-    const rows = await fetchSheetByGid(GIDS.Theme);
+    let rows: any[] = [];
+    try {
+        rows = await fetchSheetByGid(GIDS.Categories);
+    } catch {
+        rows = [];
+    }
+
+    // Fallback to Apps Script if fetchSheetByGid returns empty
+    if ((!rows || rows.length <= 1) && APPS_SCRIPT_URL) {
+        try {
+            const res = await fetch(`${APPS_SCRIPT_URL}?type=categories`, { cache: "no-store" });
+            const json = await res.json();
+            if (json.success && Array.isArray(json.data)) {
+                return json.data.map((c: any) => ({
+                    name: String(c.category_name || "").trim(),
+                    slug:
+                        String(c.slug || c.category_name || "")
+                            .toLowerCase()
+                            .replace(/[^a-z0-9]+/g, "-")
+                            .replace(/(^-|-$)+/g, ""),
+                    description: String(c.category_description || "").trim(),
+                    imageUrl: String(c.category_image_url || "").trim(),
+                }));
+            }
+        } catch {
+            // quiet fallback
+        }
+    }
+
     if (!rows || rows.length <= 1) return [];
 
+    // In Categories sheet (GID: 2040368225), Row 0 is headers:
+    // [null, "Category Name", "Category Image URL", "Category Description", "Slug"]
     return rows
         .slice(1)
-        .filter((row: any) => row.c && row.c[0]?.v)
+        .filter((row: any) => row.c && row.c[1]?.v)
         .map((row: any) => {
-            const name = String(row.c[0]?.v ?? "");
-            const explicitSlug = String(row.c[3]?.v ?? "").trim();
+            const name = String(row.c[1]?.v ?? "").trim();
+            const explicitSlug = String(row.c[4]?.v ?? "").trim();
             return {
                 name,
                 slug:
@@ -186,8 +223,8 @@ export async function getCategories(): Promise<Category[]> {
                         .toLowerCase()
                         .replace(/[^a-z0-9]+/g, "-")
                         .replace(/(^-|-$)+/g, ""),
-                description: String(row.c[2]?.v ?? ""),
-                imageUrl: String(row.c[1]?.v ?? ""),
+                description: String(row.c[3]?.v ?? "").trim(),
+                imageUrl: String(row.c[2]?.v ?? "").trim(),
             };
         });
 }

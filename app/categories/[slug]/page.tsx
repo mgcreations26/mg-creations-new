@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getProducts, getCategories, formatPrice } from "@/lib/sheets";
+import Footer from "@/components/Footer";
 import { notFound } from "next/navigation";
 
 type CategoryPageProps = {
@@ -18,42 +19,48 @@ export default async function IndividualCategoryPage({ params }: CategoryPagePro
 
     const targetSlug = rawSlug.toLowerCase().trim();
     const normalizedTarget = targetSlug.replace(/s$/, ""); // e.g. "mugs" -> "mug"
+    const targetClean = targetSlug.replace(/[^a-z0-9]/g, "").replace(/s$/, ""); // e.g. "totebags" -> "totebag"
 
     const [products, categories] = await Promise.all([
         getProducts(),
         getCategories(),
     ]);
 
-    // Find category metadata matching exact slug or singular variation
+    // Find category metadata matching exact slug, singular, or clean alphanumeric variation
     const categoryMeta = categories.find((c) => {
         const cSlug = c.slug.toLowerCase().trim();
-        return cSlug === targetSlug || cSlug === normalizedTarget || cSlug.replace(/s$/, "") === normalizedTarget;
+        const cClean = cSlug.replace(/[^a-z0-9]/g, "").replace(/s$/, "");
+        return (
+            cSlug === targetSlug ||
+            cSlug === normalizedTarget ||
+            cSlug.replace(/s$/, "") === normalizedTarget ||
+            cClean === targetClean
+        );
     });
 
-    // Filter products by matching category slug, name, title, style, or theme
+    const metaNameClean = categoryMeta?.name.toLowerCase().replace(/[^a-z0-9]/g, "").replace(/s$/, "");
+
+    // Filter products by matching category slug, name, clean name, or style/theme
     const categoryProducts = products.filter((p) => {
         const catLower = (p.category || "").toLowerCase().trim();
         const catSlug = catLower.replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
-        const titleLower = (p.title || "").toLowerCase();
+        const catClean = catLower.replace(/[^a-z0-9]/g, "").replace(/s$/, "");
         const styleLower = (p.style || "").toLowerCase();
         const themeLower = (p.theme || "").toLowerCase();
 
-        // Match on category slug (exact, singular, or plural forms)
+        // 1. Direct category match
         const matchesCategory =
             catSlug === targetSlug ||
             catSlug === normalizedTarget ||
-            catSlug.replace(/s$/, "") === normalizedTarget ||
+            catClean === targetClean ||
+            (metaNameClean && catClean === metaNameClean) ||
             catLower === targetSlug.replace(/-/g, " ");
 
-        // Match on product title containing the slug keyword
-        const keyword = normalizedTarget.replace(/-/g, " ");
-        const matchesTitle = titleLower.includes(keyword);
+        // 2. Fallbacks for style or theme
+        const matchesStyle = styleLower === normalizedTarget || styleLower === targetClean;
+        const matchesTheme = themeLower === normalizedTarget || themeLower === targetClean;
 
-        // Match on style or theme
-        const matchesStyle = styleLower === normalizedTarget;
-        const matchesTheme = themeLower === normalizedTarget;
-
-        return matchesCategory || matchesTitle || matchesStyle || matchesTheme;
+        return matchesCategory || matchesStyle || matchesTheme;
     });
 
     const categoryName =
@@ -61,7 +68,7 @@ export default async function IndividualCategoryPage({ params }: CategoryPagePro
         (categoryProducts.length > 0 ? categoryProducts[0].category : targetSlug.replace(/-/g, " "));
 
     return (
-        <main className="min-h-screen bg-[#fffaf5] text-[#241f1b]">
+        <main className="min-h-screen flex flex-col bg-[#fffaf5] text-[#241f1b]">
             {/* HEADER */}
             <header className="sticky top-0 z-50 border-b border-black/5 bg-[#fffaf5]/95 backdrop-blur">
                 <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 lg:px-8">
@@ -101,7 +108,7 @@ export default async function IndividualCategoryPage({ params }: CategoryPagePro
             </section>
 
             {/* PRODUCTS GRID */}
-            <section className="mx-auto max-w-7xl px-5 pb-24 lg:px-8">
+            <section className="mx-auto flex-1 max-w-7xl px-5 pb-24 lg:px-8">
                 {categoryProducts.length === 0 ? (
                     <div className="rounded-[2rem] bg-white px-6 py-20 text-center border border-black/5 shadow-sm">
                         <div className="text-5xl">☕</div>
@@ -154,6 +161,8 @@ export default async function IndividualCategoryPage({ params }: CategoryPagePro
                     </div>
                 )}
             </section>
+
+            <Footer />
         </main>
     );
 }

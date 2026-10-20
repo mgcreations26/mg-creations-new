@@ -44,7 +44,7 @@ export default async function ProductDetailPage({
           {/* PRODUCT INFO */}
           <div className="flex flex-col justify-center">
             <p className="text-xs font-black uppercase tracking-widest text-[#e85d3f]">
-              {product.category} • {product.brand}
+              {product.category} {product.brand && `• ${product.brand}`}
             </p>
             <h1 className="mt-2 text-4xl font-black uppercase sm:text-5xl">
               {product.title}
@@ -79,7 +79,7 @@ export default async function ProductDetailPage({
               )}
             </div>
 
-            {/* ADD TO CART & CHECKOUT */}
+            {/* ADD TO CART */}
             <div className="mt-8">
               <AddToCartButton product={product} />
             </div>
