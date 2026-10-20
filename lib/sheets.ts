@@ -5,8 +5,8 @@ export type Product = {
     description: string;
     price: number;
     imageUrl: string;
-    productType: string; // Color column mapped to Product Type
-    color: string;       // Size column mapped to Color
+    productType: string; // Column 7 mapped to Product Type
+    color: string;       // Column 8 mapped to Color variants
     size: string;
     category: string;
     style: string;
@@ -73,7 +73,7 @@ export async function getProducts(): Promise<Product[]> {
                 imageUrl: String(row.c[6]?.v ?? ""),
                 productType: String(row.c[7]?.v ?? ""), // Col 7 = Product Type
                 color: String(row.c[8]?.v ?? ""),       // Col 8 = Color
-                size: String(row.c[8]?.v ?? ""),        // Retain size fallback
+                size: String(row.c[8]?.v ?? ""),        // Size fallback
                 category: String(row.c[9]?.v ?? "General"),
                 style: String(row.c[10]?.v ?? ""),
                 brand: String(row.c[11]?.v ?? ""),
@@ -83,14 +83,13 @@ export async function getProducts(): Promise<Product[]> {
             };
         });
 
-    // Combine multi-product listings by unique Title/Slug
+    // Combine multi-product listings by unique Slug/Title and merge color variants
     const combinedMap = new Map<string, Product>();
     for (const item of mapped) {
         if (!combinedMap.has(item.slug)) {
             combinedMap.set(item.slug, item);
         } else {
             const existing = combinedMap.get(item.slug)!;
-            // Merge unique colors if listing appears multiple times
             if (item.color && !existing.color.includes(item.color)) {
                 existing.color = `${existing.color}, ${item.color}`;
             }
@@ -98,6 +97,75 @@ export async function getProducts(): Promise<Product[]> {
     }
 
     return Array.from(combinedMap.values());
+}
+
+export async function getCollections(): Promise<string[]> {
+    const products = await getProducts();
+    const collections = products
+        .map((p) => p.collection)
+        .filter(
+            (c) => c && c.trim() !== "" && c !== "General" && c !== "undefined"
+        );
+
+    return [...new Set(collections)].sort();
+}
+
+export async function getMoods(): Promise<Mood[]> {
+    let rows: any[] = [];
+    try {
+        rows = await fetchSheetByGid(GIDS.Moods_Master);
+    } catch {
+        rows = [];
+    }
+
+    if (!rows || rows.length <= 1) {
+        return [
+            {
+                id: 1,
+                name: "😎 Slaying Errands",
+                tagline: "Perfect Daily Streetwear",
+                productTitle: "Canvas Tote",
+                productCaption: "Look Loud",
+                bgColor: "bg-[#ffff00]",
+                accentColor: "#ffff00",
+                textColor: "text-black",
+            },
+            {
+                id: 2,
+                name: "🛍️ Thrift Store Hunting",
+                tagline: "Secure Vintage Gold",
+                productTitle: "Utility Keychain",
+                productCaption: "No More Tangled Keys",
+                bgColor: "bg-[#8c52ff]",
+                accentColor: "#8c52ff",
+                textColor: "text-black",
+            },
+            {
+                id: 3,
+                name: "☕ Park Hangs & Chill",
+                tagline: "Cozy Afternoons",
+                productTitle: "Bookish Mug",
+                productCaption: "Enjoy Morning Coffee",
+                bgColor: "bg-[#e85d3f]",
+                accentColor: "#e85d3f",
+                textColor: "text-white",
+            },
+        ];
+    }
+
+    return rows
+        .slice(1)
+        .filter((row: any) => row.c && row.c[1]?.v)
+        .map((row: any) => ({
+            id: Number(row.c[0]?.v ?? 0),
+            name: String(row.c[1]?.v ?? ""),
+            tagline: String(row.c[2]?.v ?? ""),
+            productTitle: String(row.c[3]?.v ?? ""),
+            productCaption: String(row.c[4]?.v ?? ""),
+            bgColor: String(row.c[15]?.v ?? "bg-gray-100"),
+            accentColor: String(row.c[16]?.v ?? "#000000"),
+            textColor: String(row.c[17]?.v ?? "text-black"),
+        }));
 }
 
 export async function getCategories(): Promise<Category[]> {
