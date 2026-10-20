@@ -1,130 +1,147 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
-import type { Product } from "@/lib/sheets";
-import { formatPrice } from "@/lib/sheets";
+import Link from "next/link";
+import { Product, formatPrice } from "@/lib/sheets";
 
-type ShopClientProps = {
+export default function ShopClient({
+    products,
+    collections,
+}: {
     products: Product[];
     collections: string[];
-};
+}) {
+    const [selectedTheme, setSelectedTheme] = useState<string>("All");
+    const [onlyTrending, setOnlyTrending] = useState<boolean>(false);
 
-export default function ShopClient({ products, collections }: ShopClientProps) {
-    const [selectedCollection, setSelectedCollection] = useState("All");
+    // Extract unique themes from products list
+    const availableThemes = [
+        "All",
+        ...Array.from(
+            new Set(
+                products
+                    .map((p) => p.theme)
+                    .filter((t) => t && t.trim() !== "" && t !== "undefined")
+            )
+        ).sort(),
+    ];
 
-    const collectionFilters = ["All", ...collections];
+    // Filter products by selected Theme and Trending flag
+    const filteredProducts = products.filter((product) => {
+        const matchesTheme =
+            selectedTheme === "All" ||
+            product.theme.toLowerCase().trim() === selectedTheme.toLowerCase().trim();
 
-    const visibleProducts = products.filter((p) => {
-        if (selectedCollection === "All") return true;
-        return (
-            p.collection.toLowerCase().trim() ===
-            selectedCollection.toLowerCase().trim()
-        );
+        const matchesTrending = onlyTrending ? Boolean(product.trending) : true;
+
+        return matchesTheme && matchesTrending;
     });
 
     return (
-        <main className="min-h-screen bg-[#fffaf5] text-[#241f1b]">
-            {/* HEADER */}
-            <header className="sticky top-0 z-50 border-b border-black/5 bg-[#fffaf5]/95 backdrop-blur">
-                <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 lg:px-8">
-                    <Link href="/" className="text-2xl font-black tracking-tight sm:text-3xl">
-                        MG <span className="text-[#e85d3f]">CREATIONS</span>
-                    </Link>
-
-                    <nav className="flex items-center gap-6 text-sm font-bold">
-                        <Link href="/" className="hover:text-[#e85d3f]">
-                            HOME
-                        </Link>
-                        <span className="text-[#e85d3f]">SHOP</span>
-                    </nav>
-                </div>
-            </header>
-
-            {/* HERO */}
-            <section className="px-5 pb-10 pt-16 text-center">
-                <p className="text-sm font-black uppercase tracking-[0.2em] text-[#e85d3f]">
-                    The Complete Catalog
-                </p>
-
-                <h1 className="mt-4 text-6xl font-black tracking-tight sm:text-7xl">
-                    OUR COLLECTIONS
-                </h1>
-            </section>
-
-            {/* COLLECTION FILTERS */}
-            <section className="mx-auto max-w-7xl px-5 pb-12 lg:px-8">
-                <div className="flex flex-wrap justify-center gap-3">
-                    {collectionFilters.map((col) => {
-                        const active = selectedCollection === col;
-                        return (
-                            <button
-                                key={col}
-                                onClick={() => setSelectedCollection(col)}
-                                className={`rounded-full border px-5 py-3 text-sm font-black transition ${active
-                                        ? "border-[#e85d3f] bg-[#e85d3f] text-white"
-                                        : "border-black/10 bg-white hover:border-[#e85d3f] hover:text-[#e85d3f]"
-                                    }`}
-                            >
-                                {col}
-                            </button>
-                        );
-                    })}
-                </div>
-            </section>
-
-            {/* PRODUCTS */}
-            <section className="mx-auto max-w-7xl px-5 pb-24 lg:px-8">
-                {visibleProducts.length === 0 ? (
-                    <div className="rounded-[2rem] bg-white px-6 py-20 text-center">
-                        <div className="text-5xl">✨</div>
-                        <h2 className="mt-5 text-3xl font-black">No products found.</h2>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+            {/* THEME & TRENDING FILTER CONTROLS */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-8 border-b border-orange-100 dark:border-zinc-800">
+                {/* THEME TABS */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 custom-scrollbar">
+                    <span className="text-xs font-bold uppercase tracking-widest text-slate-400 mr-2 shrink-0">
+                        Themes:
+                    </span>
+                    {availableThemes.map((theme) => (
                         <button
-                            onClick={() => setSelectedCollection("All")}
-                            className="mt-6 rounded-full bg-[#e85d3f] px-7 py-3 text-sm font-black text-white"
+                            key={theme}
+                            onClick={() => setSelectedTheme(theme)}
+                            className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-full transition-all shrink-0 ${selectedTheme === theme
+                                    ? "bg-[#c2410c] text-white shadow-md"
+                                    : "bg-white dark:bg-zinc-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-zinc-700 hover:border-[#c2410c]"
+                                }`}
                         >
-                            Browse All Collections
+                            {theme}
+                        </button>
+                    ))}
+                </div>
+
+                {/* TRENDING TOGGLE BUTTON */}
+                <button
+                    onClick={() => setOnlyTrending(!onlyTrending)}
+                    className={`flex items-center gap-2 px-5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-full transition-all border shrink-0 ${onlyTrending
+                            ? "bg-amber-500 text-white border-amber-500 shadow-md"
+                            : "bg-white dark:bg-zinc-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-zinc-700 hover:border-amber-500"
+                        }`}
+                >
+                    <span>🔥</span>
+                    <span>{onlyTrending ? "Showing Trending Only" : "Filter Trending"}</span>
+                </button>
+            </div>
+
+            {/* PRODUCTS GRID */}
+            <div className="mt-10">
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="font-serif text-2xl font-bold dark:text-white">
+                        {selectedTheme === "All" ? "All Products" : `${selectedTheme} Collection`}
+                    </h2>
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                        {filteredProducts.length} {filteredProducts.length === 1 ? "item" : "items"}
+                    </span>
+                </div>
+
+                {filteredProducts.length === 0 ? (
+                    <div className="text-center py-20 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800">
+                        <div className="text-4xl mb-3">🛍️</div>
+                        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">
+                            No products found in this theme or category.
+                        </h3>
+                        <button
+                            onClick={() => {
+                                setSelectedTheme("All");
+                                setOnlyTrending(false);
+                            }}
+                            className="mt-4 px-6 py-2.5 bg-[#c2410c] text-white text-xs font-bold uppercase tracking-wider rounded-full"
+                        >
+                            Reset Filters
                         </button>
                     </div>
                 ) : (
-                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        {visibleProducts.map((product) => (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        {filteredProducts.map((product) => (
                             <Link
-                                key={product.productId || product.slug}
+                                key={product.slug}
                                 href={`/product/${product.slug}`}
-                                className="group overflow-hidden rounded-[2rem] bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+                                className="group cursor-pointer flex flex-col justify-between bg-white dark:bg-zinc-900 rounded-lg p-3 border border-slate-200 dark:border-zinc-800 hover:shadow-xl transition-all duration-300"
                             >
-                                <div className="aspect-square overflow-hidden bg-[#f3eee8]">
-                                    {product.imageUrl ? (
+                                <div>
+                                    <div className="relative aspect-square overflow-hidden rounded-md bg-slate-50 dark:bg-zinc-800 mb-3">
                                         <img
                                             src={product.imageUrl}
                                             alt={product.title}
-                                            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                         />
-                                    ) : (
-                                        <div className="flex h-full items-center justify-center text-4xl opacity-20">
-                                            🛍️
-                                        </div>
-                                    )}
+                                        {product.trending && (
+                                            <span className="absolute top-2 left-2 bg-amber-500 text-white text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow">
+                                                🔥 Trending
+                                            </span>
+                                        )}
+                                    </div>
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-[#4a5d4e]">
+                                        {product.theme || product.category}
+                                    </span>
+                                    <h3 className="text-xs font-bold uppercase tracking-wide text-slate-800 dark:text-slate-200 group-hover:text-[#c2410c] transition-colors line-clamp-2 mt-1">
+                                        {product.title}
+                                    </h3>
                                 </div>
 
-                                <div className="p-6">
-                                    <p className="text-xs font-black uppercase tracking-wider text-[#e85d3f]">
-                                        {product.collection || product.category}
-                                    </p>
-                                    <h2 className="mt-2 text-xl font-black">{product.title}</h2>
-                                    <div className="mt-4 flex items-center justify-between">
-                                        <span className="text-lg font-black">
-                                            {formatPrice(product.price)}
-                                        </span>
-                                        <span className="text-sm font-bold">View Product →</span>
-                                    </div>
+                                <div className="mt-3 pt-2 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between">
+                                    <span className="text-sm font-bold text-[#c2410c]">
+                                        {formatPrice(product.price)}
+                                    </span>
+                                    <span className="text-[10px] font-bold uppercase text-[#c2410c] group-hover:underline">
+                                        View →
+                                    </span>
                                 </div>
                             </Link>
                         ))}
                     </div>
                 )}
-            </section>
-        </main>
+            </div>
+        </div>
     );
 }

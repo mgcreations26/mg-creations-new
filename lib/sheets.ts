@@ -14,6 +14,7 @@ export type Product = {
     mood: string;
     collection: string;
     theme: string;
+    trending?: boolean;
 };
 
 export type Mood = {
@@ -71,6 +72,10 @@ export async function getProducts(): Promise<Product[]> {
 
             const rawPrice = String(row.c[4]?.v ?? "0").replace(/[^0-9.]/g, "");
 
+            const trendingVal = String(row.c[15]?.v ?? "").toLowerCase().trim();
+            const isTrending =
+                trendingVal === "true" || trendingVal === "yes" || trendingVal === "1";
+
             return {
                 productId: String(row.c[0]?.v ?? generatedSlug),
                 slug: generatedSlug,
@@ -80,13 +85,14 @@ export async function getProducts(): Promise<Product[]> {
                 imageUrl: String(row.c[6]?.v ?? ""),
                 productType: String(row.c[7]?.v ?? ""), // Col 7 = Category/Product Type
                 category: String(row.c[7]?.v ?? "General"), // Col 7 = Category
-                color: String(row.c[8]?.v ?? ""),       // Col 8 = Color
-                size: String(row.c[9]?.v ?? ""),        // Col 9 = Size
+                color: String(row.c[8]?.v ?? ""), // Col 8 = Color
+                size: String(row.c[9]?.v ?? ""), // Col 9 = Size
                 style: String(row.c[10]?.v ?? ""),
                 brand: String(row.c[11]?.v ?? ""),
                 mood: String(row.c[12]?.v ?? "General").trim(),
                 collection: String(row.c[13]?.v ?? "General").trim(),
                 theme: String(row.c[14]?.v ?? ""),
+                trending: isTrending,
             };
         });
 
@@ -99,6 +105,9 @@ export async function getProducts(): Promise<Product[]> {
             const existing = combinedMap.get(item.slug)!;
             if (item.color && !existing.color.includes(item.color)) {
                 existing.color = `${existing.color}, ${item.color}`;
+            }
+            if (item.trending) {
+                existing.trending = true;
             }
         }
     }
@@ -207,8 +216,6 @@ export async function getCategories(): Promise<Category[]> {
 
     if (!rows || rows.length <= 1) return [];
 
-    // In Categories sheet (GID: 2040368225), Row 0 is headers:
-    // [null, "Category Name", "Category Image URL", "Category Description", "Slug"]
     return rows
         .slice(1)
         .filter((row: any) => row.c && row.c[1]?.v)
