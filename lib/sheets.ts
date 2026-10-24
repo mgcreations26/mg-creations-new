@@ -15,6 +15,8 @@ export type Product = {
     collection: string;
     theme: string;
     trending?: boolean;
+    freshDrop: boolean;
+    bestSeller: boolean;
 };
 
 export type Mood = {
@@ -35,6 +37,16 @@ export type Category = {
     imageUrl: string;
 };
 
+
+export type Theme = {
+    name: string;
+    slug: string;
+    description: string;
+    imageUrl: string;
+    trending: boolean;
+};
+
+
 const SHEET_ID = process.env.NEXT_PUBLIC_GOOGLE_SHEET_ID;
 const APPS_SCRIPT_URL = process.env.NEXT_PUBLIC_APPS_SCRIPT_URL;
 
@@ -44,6 +56,15 @@ const GIDS = {
     Categories: "2040368225",
     Theme: "262387479",
 };
+
+function isChecked(value: unknown): boolean {
+    return (
+        value === true ||
+        ["true", "yes", "1", "checked"].includes(
+            String(value ?? "").trim().toLowerCase()
+        )
+    );
+}
 
 export async function getProducts(): Promise<Product[]> {
     let rows: any[] = [];
@@ -61,6 +82,7 @@ export async function getProducts(): Promise<Product[]> {
         return firstCol !== "product id" && firstCol !== "";
     });
 
+
     const mapped = dataRows
         .filter((row: any) => row.c && row.c[2] && row.c[2].v)
         .map((row: any) => {
@@ -70,11 +92,8 @@ export async function getProducts(): Promise<Product[]> {
                 .replace(/[^a-z0-9]+/g, "-")
                 .replace(/(^-|-$)+/g, "");
 
-            const rawPrice = String(row.c[4]?.v ?? "0").replace(/[^0-9.]/g, "");
-
-            const trendingVal = String(row.c[15]?.v ?? "").toLowerCase().trim();
-            const isTrending =
-                trendingVal === "true" || trendingVal === "yes" || trendingVal === "1";
+            const rawPrice = String(row.c[4]?.v ?? "0")
+                .replace(/[^0-9.]/g, "");
 
             return {
                 productId: String(row.c[0]?.v ?? generatedSlug),
@@ -83,37 +102,61 @@ export async function getProducts(): Promise<Product[]> {
                 description: String(row.c[3]?.v ?? ""),
                 price: parseFloat(rawPrice) || 0,
                 imageUrl: String(row.c[6]?.v ?? ""),
-                productType: String(row.c[7]?.v ?? ""), // Col 7 = Category/Product Type
-                category: String(row.c[7]?.v ?? "General"), // Col 7 = Category
-                color: String(row.c[8]?.v ?? ""), // Col 8 = Color
-                size: String(row.c[9]?.v ?? ""), // Col 9 = Size
-                style: String(row.c[10]?.v ?? ""),
-                brand: String(row.c[11]?.v ?? ""),
-                mood: String(row.c[12]?.v ?? "General").trim(),
-                collection: String(row.c[13]?.v ?? "General").trim(),
-                theme: String(row.c[14]?.v ?? ""),
-                trending: isTrending,
+                productType: String(row.c[7]?.v ?? ""),
+                category: String(row.c[7]?.v ?? "General"),
+                color: String(row.c[8]?.v ?? ""),
+                size: String(row.c[9]?.v ?? ""),
+                style: "",
+                brand: "",
+                mood: "General",
+                collection: "General",
+                theme: String(row.c[10]?.v ?? "").trim(),
+                trending: false,
+                freshDrop: isChecked(row.c[11]?.v),
+                bestSeller: isChecked(row.c[12]?.v),
             };
         });
 
     // Combine multi-product listings by unique Slug/Title and merge color variants
+
+    // Combine multi-product listings by unique Slug/Title and merge color variants.
     const combinedMap = new Map<string, Product>();
+
     for (const item of mapped) {
-        if (!combinedMap.has(item.slug)) {
-            combinedMap.set(item.slug, item);
-        } else {
-            const existing = combinedMap.get(item.slug)!;
-            if (item.color && !existing.color.includes(item.color)) {
-                existing.color = `${existing.color}, ${item.color}`;
-            }
-            if (item.trending) {
-                existing.trending = true;
-            }
+        const existing = combinedMap.get(item.slug);
+
+        if (!existing) {
+            combinedMap.set(item.slug, {
+                ...item,
+                imageUrl: item.imageUrl.trim(),
+            });
+            continue;
         }
+
+        // Preserve an image if the first variant has no image.
+        if (!existing.imageUrl.trim() && item.imageUrl.trim()) {
+            existing.imageUrl = item.imageUrl.trim();
+        }
+
+        if (
+            item.color &&
+            !existing.color
+                .split(", ")
+                .includes(item.color)
+        ) {
+            existing.color = existing.color
+                ? `${existing.color}, ${item.color}`
+                : item.color;
+        }
+
+        if (item.trending) existing.trending = true;
+        if (item.freshDrop) existing.freshDrop = true;
+        if (item.bestSeller) existing.bestSeller = true;
     }
 
     return Array.from(combinedMap.values());
 }
+
 
 export async function getCollections(): Promise<string[]> {
     const products = await getProducts();
@@ -236,12 +279,50 @@ export async function getCategories(): Promise<Category[]> {
         });
 }
 
+
+export async function getThemes(): Promise<Theme[]> {
+    let rows: any[] = [];
+
+    try {
+        rows = await fetchSheetByGid(GIDS.Theme);
+    } catch {
+        rows = [];
+    }
+
+    if (!rows || rows.length === 0) return [];
+
+    return rows
+        .filter((row: any) => {
+            const checked = row.c?.[0]?.v;
+            const themeName = String(row.c?.[1]?.v ?? "").trim();
+
+            // Only show themes whose activation checkbox is checked.
+            return isChecked(checked) && themeName !== "";
+        })
+        .map((row: any) => {
+            const name = String(row.c?.[1]?.v ?? "").trim();
+
+            return {
+                name,
+                slug: name
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, "-")
+                    .replace(/(^-|-$)+/g, ""),
+                description: String(row.c?.[2]?.v ?? "").trim(),
+                imageUrl: String(row.c?.[3]?.v ?? "").trim(),
+                trending: isChecked(row.c?.[0]?.v),
+            };
+        });
+}
+
+
 export function formatPrice(price: number): string {
     return new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "USD",
     }).format(price || 0);
 }
+
 
 async function fetchSheetByGid(gid: string) {
     if (!SHEET_ID) return [];

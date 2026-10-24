@@ -1,7 +1,9 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { CartProvider } from "@/context/CartContext";
-import CartDrawer from "@/components/CartDrawer";
+import CartDrawer from "@/app/components/CartDrawer";
+import Footer from "@/app/components/Footer";
+import Header from "@/app/components/Header";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -20,7 +22,8 @@ export const metadata: Metadata = {
     default: "MG Creations — Curated Storefront",
     template: "%s — MG Creations",
   },
-  description: "Curated custom apparel, graphic tees, mugs, totes, and accessories. Shop MG Creations.",
+  description:
+    "Curated custom apparel, graphic tees, mugs, totes, and accessories. Shop MG Creations.",
   alternates: { canonical: "https://mgcreations.store" },
   openGraph: {
     siteName: "MG Creations",
@@ -42,8 +45,10 @@ export default function RootLayout({
     >
       <body className="flex min-h-full flex-col bg-[#fffaf5] text-[#241f1b]">
         <CartProvider>
-          {children}
+          <Header />
+          <div className="flex-1">{children}</div>
           <CartDrawer />
+          <Footer />
         </CartProvider>
       </body>
     </html>

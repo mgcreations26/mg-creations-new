@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { getCategories, getProducts } from "@/lib/sheets";
-import Footer from "@/components/Footer";
 
 export default async function CategoriesPage() {
     const [categoriesList, products] = await Promise.all([
@@ -53,19 +52,7 @@ export default async function CategoriesPage() {
     return (
         <main className="flex min-h-screen flex-col bg-[#fffaf5] text-[#241f1b]">
             {/* HEADER */}
-            <header className="sticky top-0 z-50 border-b border-black/5 bg-[#fffaf5]/95 backdrop-blur">
-                <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 lg:px-8">
-                    <Link href="/" className="text-2xl font-black tracking-tight sm:text-3xl">
-                        MG <span className="text-[#e85d3f]">CREATIONS</span>
-                    </Link>
 
-                    <nav className="flex items-center gap-6 text-sm font-bold">
-                        <Link href="/" className="hover:text-[#e85d3f]">HOME</Link>
-                        <Link href="/shop" className="hover:text-[#e85d3f]">SHOP</Link>
-                        <Link href="/categories" className="text-[#e85d3f]">CATEGORIES</Link>
-                    </nav>
-                </div>
-            </header>
 
             {/* HERO */}
             <section className="px-5 pb-8 pt-16 text-center">
@@ -95,7 +82,7 @@ export default async function CategoriesPage() {
                                     />
                                 ) : (
                                     <div className="flex h-full items-center justify-center text-4xl opacity-20">
-                                        🛍️
+                                        ðŸ›ï¸
                                     </div>
                                 )}
                             </div>
@@ -108,7 +95,7 @@ export default async function CategoriesPage() {
                                     </p>
                                 </div>
                                 <span className="text-sm font-black text-[#e85d3f] transition group-hover:translate-x-1">
-                                    View →
+                                    View â†’
                                 </span>
                             </div>
                         </Link>
@@ -116,7 +103,6 @@ export default async function CategoriesPage() {
                 </div>
             </section>
 
-            <Footer />
         </main>
     );
 }

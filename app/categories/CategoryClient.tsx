@@ -11,23 +11,7 @@ export default function CategoryClient({ categories }: CategoryClientProps) {
     return (
         <main className="min-h-screen bg-[#fffaf5] text-[#241f1b]">
             {/* HEADER */}
-            <header className="sticky top-0 z-50 border-b border-black/5 bg-[#fffaf5]/95 backdrop-blur">
-                <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 lg:px-8">
-                    <Link href="/" className="text-2xl font-black tracking-tight sm:text-3xl">
-                        MG <span className="text-[#e85d3f]">CREATIONS</span>
-                    </Link>
 
-                    <nav className="flex items-center gap-6 text-sm font-bold">
-                        <Link href="/" className="hover:text-[#e85d3f]">
-                            HOME
-                        </Link>
-                        <Link href="/shop" className="hover:text-[#e85d3f]">
-                            SHOP
-                        </Link>
-                        <span className="text-[#e85d3f]">CATEGORIES</span>
-                    </nav>
-                </div>
-            </header>
 
             {/* HERO */}
             <section className="px-5 pb-8 pt-16 text-center">
@@ -61,11 +45,11 @@ export default function CategoryClient({ categories }: CategoryClientProps) {
                                     />
                                 ) : (
                                     <div className="flex h-full items-center justify-center text-5xl opacity-30">
-                                        🛍️
+                                        ðŸ›ï¸
                                     </div>
                                 )}
                                 <div className="absolute top-4 right-4 rounded-full bg-black/70 px-4 py-1.5 text-xs font-black text-white uppercase tracking-wider backdrop-blur">
-                                    View Category →
+                                    View Category â†’
                                 </div>
                             </div>
 

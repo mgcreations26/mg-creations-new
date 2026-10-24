@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { getProducts, getCategories, formatPrice } from "@/lib/sheets";
-import Footer from "@/components/Footer";
 import { notFound } from "next/navigation";
 
 type CategoryPageProps = {
@@ -162,7 +161,6 @@ export default async function IndividualCategoryPage({ params }: CategoryPagePro
                 )}
             </section>
 
-            <Footer />
         </main>
     );
 }

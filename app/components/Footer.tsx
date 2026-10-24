@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 export default function Footer() {
     return (
@@ -31,7 +31,7 @@ export default function Footer() {
                             </li>
                             <li>
                                 <Link href="/shop" className="hover:text-[#c2410c] transition-colors">
-                                    Shop Catalog
+                                    Shop All
                                 </Link>
                             </li>
                             <li>
@@ -85,14 +85,14 @@ export default function Footer() {
                             rel="noopener noreferrer"
                             className="inline-block font-bold text-[#c2410c] underline hover:opacity-80 text-sm"
                         >
-                            mg-creations.com →
+                            mg-creations.com â†’
                         </a>
                     </div>
                 </div>
 
                 {/* COPYRIGHT */}
                 <div className="mt-16 pt-8 border-t border-slate-200 dark:border-zinc-800 text-center text-xs text-slate-400 uppercase tracking-widest font-bold">
-                    © {new Date().getFullYear()} MG Creations. All rights reserved.
+                    Â© {new Date().getFullYear()} MG Creations. All rights reserved.
                 </div>
             </div>
         </footer>
