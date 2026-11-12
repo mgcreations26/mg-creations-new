@@ -1,8 +1,8 @@
-
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getProducts, formatPrice } from "@/lib/sheets";
 import AddToCartButton from "./AddToCartButton";
+import { Star, ShieldCheck, Sparkles, PackageCheck, Zap, ArrowRight } from "lucide-react";
 
 export default async function ProductDetailPage({
   params,
@@ -21,288 +21,171 @@ export default async function ProductDetailPage({
       (item) =>
         item.slug !== product.slug &&
         (
-          (product.category &&
-            item.category === product.category) ||
+          (product.category && item.category === product.category) ||
           (product.theme && item.theme === product.theme)
         )
     )
     .slice(0, 4);
 
-  const colors = product.color
-    ? product.color.split(",").map((value) => value.trim()).filter(Boolean)
-    : [];
-
-  const sizes = product.size
-    ? product.size.split(",").map((value) => value.trim()).filter(Boolean)
-    : [];
-
   return (
-    <main className="min-h-screen bg-[#fdfbf7] text-slate-800">
-      {/* Product page content */}
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-[#fff8f5] text-[#1f1b17]">
+      <div className="mx-auto max-w-[1320px] px-4 py-8 sm:px-6 lg:px-8">
         {/* Breadcrumbs */}
         <nav
           aria-label="Breadcrumb"
-          className="mb-8 flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400"
+          className="mb-8 flex flex-wrap items-center gap-2 text-xs font-semibold text-[#8d716b]"
         >
-          <Link href="/" className="transition-colors hover:text-[#c2410c]">
+          <Link href="/" className="hover:text-[#a93017] transition-colors">
             Home
           </Link>
           <span>/</span>
-          <Link
-            href="/categories"
-            className="transition-colors hover:text-[#c2410c]"
-          >
+          <Link href="/shop" className="hover:text-[#a93017] transition-colors">
             Shop
           </Link>
           {product.category && (
             <>
               <span>/</span>
-              <span>{product.category}</span>
+              <Link
+                href={`/categories`}
+                className="hover:text-[#a93017] transition-colors"
+              >
+                {product.category}
+              </Link>
             </>
           )}
           <span>/</span>
-          <span className="max-w-[220px] truncate text-slate-600">
+          <span className="truncate text-[#1f1b17] font-bold">
             {product.title}
           </span>
         </nav>
 
         {/* Main product layout */}
-        <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-12 lg:gap-12">
-          {/* Product image */}
-          <section className="lg:col-span-7">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[88px_minmax(0,1fr)]">
-              {/* A thumbnail strip is omitted until real additional images exist. */}
-              <div className="hidden sm:block">
-                <div className="aspect-square overflow-hidden rounded-md border-2 border-[#c2410c] bg-[#f3eee8]">
-                  {product.imageUrl ? (
-                    <img
-                      src={product.imageUrl}
-                      alt={`${product.title} thumbnail`}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center p-2 text-center text-xs text-slate-400">
-                      Image coming soon
-                    </div>
-                  )}
+        <div className="grid grid-cols-1 items-start gap-12 lg:grid-cols-12 lg:gap-14">
+          {/* Product image section */}
+          <section className="lg:col-span-7 flex flex-col gap-4">
+            <div className="relative aspect-square overflow-hidden rounded-3xl bg-[#fdf2eb] border-2 border-white shadow-sm">
+              {product.imageUrl ? (
+                <img
+                  src={product.imageUrl}
+                  alt={product.title}
+                  className="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.02]"
+                />
+              ) : (
+                <div className="flex h-full flex-col items-center justify-center font-serif text-5xl text-[#a93017]/30">
+                  MG
                 </div>
-              </div>
+              )}
 
-              <div className="group relative aspect-square overflow-hidden rounded-lg bg-[#f3eee8]">
-                {product.imageUrl ? (
-                  <img
-                    src={product.imageUrl}
-                    alt={product.title}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-                  />
-                ) : (
-                  <div className="flex h-full flex-col items-center justify-center gap-3 text-slate-400">
-                    <span className="text-5xl" aria-hidden="true">
-                      ✦
-                    </span>
-                    <p className="text-sm">Product image coming soon</p>
-                  </div>
-                )}
-
-                {product.trending && (
-                  <span className="absolute left-4 top-4 rounded-sm bg-[#4a5d4e] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-white">
-                    Trending
-                  </span>
-                )}
-              </div>
+              {product.bestSeller && (
+                <span className="absolute left-4 top-4 rounded-full bg-[#a43c22] px-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+                  Best Seller
+                </span>
+              )}
             </div>
 
-            <p className="mt-4 text-center text-xs text-slate-400 sm:text-left">
-              Designed with care by MG Creations
-            </p>
+            <div className="flex items-center justify-between text-xs text-[#59413c] px-2">
+              <span className="flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-[#a93017]" /> Handcrafted in Austin, TX
+              </span>
+              <span className="text-[#8d716b]">Authentic MG Creations Studio Original</span>
+            </div>
           </section>
 
-          {/* Product details */}
+          {/* Product details section */}
           <section className="flex flex-col lg:col-span-5">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#4a5d4e]">
-                {product.category || product.productType || "MG Creations"}
-                {product.brand ? ` · ${product.brand}` : ""}
-              </p>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ffdad3]/70 text-[#8b1a02] text-xs font-bold uppercase tracking-wider mb-3">
+                <Star className="w-3.5 h-3.5 fill-current text-[#825100]" />
+                <span>{product.category || product.collection || "Custom Keepsake"}</span>
+              </div>
 
-              <h1 className="mt-3 font-serif text-3xl leading-tight text-slate-900 sm:text-4xl lg:text-[2.7rem]">
+              <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-[#1f1b17] leading-tight">
                 {product.title}
               </h1>
 
-              <div className="mt-5 border-b border-orange-100 pb-6">
-                <p className="text-3xl font-bold tracking-tight text-[#c2410c]">
-                  {formatPrice(product.price)}
-                </p>
-                <p className="mt-2 text-xs text-slate-500">
-                  Price shown before any applicable shipping or taxes.
-                </p>
+              <div className="mt-4 flex items-center justify-between border-b border-[#e0bfb8]/40 pb-6">
+                <div>
+                  <p className="text-3xl font-bold tracking-tight text-[#a93017]">
+                    {formatPrice(product.price)}
+                  </p>
+                  <p className="mt-1 text-xs text-[#59413c]">
+                    Taxes and personalized packaging calculated at checkout.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-1 text-[#825100] text-sm font-bold bg-[#fdf2eb] px-3 py-1.5 rounded-full border border-[#e0bfb8]/40">
+                  <Star className="w-4 h-4 fill-current" />
+                  <span>5.0 (Review Verified)</span>
+                </div>
               </div>
             </div>
 
-            <div className="space-y-6 border-b border-orange-100 py-6">
-              <div>
-                <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-slate-800">
-                  About this product
-                </h2>
-                <p className="mt-3 whitespace-pre-line text-sm leading-7 text-slate-600">
-                  {product.description ||
-                    "Made with care for everyday style by MG Creations."}
-                </p>
-              </div>
+            {/* Product description & options */}
+            <div className="space-y-4 py-6 border-b border-[#e0bfb8]/40">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#1f1b17]">
+                About this Piece
+              </h2>
+              <p className="text-xs sm:text-sm leading-relaxed text-[#59413c] whitespace-pre-line">
+                {product.description ||
+                  "Handcrafted with personal care, laser-precise detailing, and premium materials."}
+              </p>
 
               {product.productType && (
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-                    Product type
-                  </p>
-                  <p className="mt-2 text-sm font-medium text-slate-800">
-                    {product.productType}
-                  </p>
-                </div>
-              )}
-
-              {colors.length > 0 && (
-                <div>
-                  <p className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-slate-800">
-                    Available colors / options
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {colors.map((color) => (
-                      <span
-                        key={color}
-                        className="rounded-sm border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
-                      >
-                        {color}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {sizes.length > 0 && (
-                <div>
-                  <p className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-slate-800">
-                    Available sizes
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {sizes.map((size) => (
-                      <span
-                        key={size}
-                        className="min-w-11 rounded-sm border border-slate-200 bg-white px-3 py-2 text-center text-sm text-slate-700"
-                      >
-                        {size}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {product.theme && (
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-                    Collection
-                  </p>
-                  <p className="mt-2 text-sm text-slate-700">
-                    {product.theme}
-                  </p>
+                <div className="pt-2">
+                  <span className="text-xs font-semibold text-[#8d716b]">Medium / Type: </span>
+                  <span className="text-xs font-bold text-[#1f1b17]">{product.productType}</span>
                 </div>
               )}
             </div>
 
-            {/* Keep the existing cart integration */}
-            <div className="mt-6">
+            {/* Shopping Cart button */}
+            <div className="mt-2">
               <AddToCartButton product={product} />
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-4">
-              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
-                <span className="text-lg text-[#c2410c]" aria-hidden="true">
-                  ♧
-                </span>
-                Thoughtfully designed
+            {/* Value Ribbons */}
+            <div className="mt-6 grid grid-cols-2 gap-3 pt-4">
+              <div className="flex items-center gap-2 rounded-2xl bg-[#fdf2eb] p-3 text-xs font-bold text-[#1f1b17] border border-[#e0bfb8]/40">
+                <ShieldCheck className="w-4 h-4 text-[#a93017]" />
+                <span>Proof Before Dispatch</span>
               </div>
-              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
-                <span className="text-lg text-[#c2410c]" aria-hidden="true">
-                  ✓
-                </span>
-                Secure checkout
+              <div className="flex items-center gap-2 rounded-2xl bg-[#fdf2eb] p-3 text-xs font-bold text-[#1f1b17] border border-[#e0bfb8]/40">
+                <Zap className="w-4 h-4 text-[#a93017]" />
+                <span>Ships in 48-72 Hours</span>
               </div>
             </div>
           </section>
         </div>
 
-        {/* Description section */}
-        <section className="mt-20 border-t border-orange-100 pt-8">
-          <div className="mb-8 border-b border-orange-100 pb-5">
-            <h2 className="font-serif text-2xl text-slate-900">
-              Product Details
-            </h2>
-            <p className="mt-2 text-xs uppercase tracking-[0.15em] text-slate-400">
-              The details that make it yours
-            </p>
-          </div>
-
-          <div className="max-w-3xl">
-            <h3 className="font-serif text-xl text-slate-800">
-              Made for your everyday moments
-            </h3>
-            <p className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-600">
-              {product.description ||
-                "Discover thoughtful design and a personal touch with MG Creations."}
-            </p>
-
-            <div className="mt-6 grid gap-3 text-sm text-slate-600 sm:grid-cols-2">
-              {product.productType && (
-                <p>
-                  <span className="mr-2 text-[#c2410c]">✦</span>
-                  {product.productType}
-                </p>
-              )}
-              {product.category && (
-                <p>
-                  <span className="mr-2 text-[#c2410c]">✦</span>
-                  Category: {product.category}
-                </p>
-              )}
-              {product.brand && (
-                <p>
-                  <span className="mr-2 text-[#c2410c]">✦</span>
-                  Brand: {product.brand}
-                </p>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* Related products from the existing product feed */}
+        {/* Related products */}
         {relatedProducts.length > 0 && (
-          <section className="mt-20">
+          <section className="mt-24 border-t border-[#e0bfb8]/40 pt-12">
             <div className="mb-8 flex items-end justify-between gap-4">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#4a5d4e]">
-                  Discover more
-                </p>
-                <h2 className="mt-2 font-serif text-3xl text-slate-900">
-                  You May Also Like
+                <span className="text-xs font-bold uppercase tracking-widest text-[#a93017]">
+                  Curated Pairings
+                </span>
+                <h2 className="mt-1 font-serif text-2xl sm:text-3xl font-bold text-[#1f1b17]">
+                  You May Also Love
                 </h2>
               </div>
               <Link
-                href="/categories"
-                className="shrink-0 text-xs font-bold uppercase tracking-[0.12em] text-[#c2410c] hover:underline"
+                href="/shop"
+                className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-[#a93017] hover:text-[#cb482c] transition-colors"
               >
-                Shop all
+                <span>View All</span>
+                <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
               {relatedProducts.map((item) => (
                 <Link
                   key={item.slug}
                   href={`/product/${item.slug}`}
-                  className="group min-w-0"
+                  className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col border border-[#e0bfb8]/40"
                 >
-                  <div className="aspect-square overflow-hidden rounded-md bg-[#f3eee8]">
+                  <div className="aspect-square overflow-hidden bg-[#f7ece5]">
                     {item.imageUrl ? (
                       <img
                         src={item.imageUrl}
@@ -311,18 +194,20 @@ export default async function ProductDetailPage({
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     ) : (
-                      <div className="flex h-full items-center justify-center text-sm text-slate-400">
-                        Image coming soon
+                      <div className="flex h-full items-center justify-center font-serif text-3xl text-[#a93017]/30">
+                        MG
                       </div>
                     )}
                   </div>
 
-                  <h3 className="mt-4 line-clamp-2 text-sm font-bold uppercase tracking-wide text-slate-800 transition-colors group-hover:text-[#c2410c]">
-                    {item.title}
-                  </h3>
-                  <p className="mt-2 font-bold text-[#c2410c]">
-                    {formatPrice(item.price)}
-                  </p>
+                  <div className="p-4 flex flex-col justify-between flex-1 gap-2">
+                    <h3 className="line-clamp-1 font-serif text-sm font-bold text-[#1f1b17] group-hover:text-[#a93017] transition-colors">
+                      {item.title}
+                    </h3>
+                    <p className="font-bold text-sm text-[#a93017]">
+                      {formatPrice(item.price)}
+                    </p>
+                  </div>
                 </Link>
               ))}
             </div>

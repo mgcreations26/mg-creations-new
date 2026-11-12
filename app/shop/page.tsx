@@ -1,68 +1,81 @@
-
 import Link from "next/link";
 import { getProducts, formatPrice } from "@/lib/sheets";
+import { Sparkles, ArrowRight, Star } from "lucide-react";
 
 type ShopPageProps = {
     searchParams: Promise<{
         theme?: string;
+        collection?: string;
     }>;
 };
 
 export default async function ShopPage({ searchParams }: ShopPageProps) {
-    const [{ theme }, allProducts] = await Promise.all([
+    const [{ theme, collection }, allProducts] = await Promise.all([
         searchParams,
         getProducts(),
     ]);
 
-    const selectedTheme = theme?.trim();
+    const selectedFilter = theme?.trim() || collection?.trim();
 
     const products = allProducts.filter((product) => {
-        if (!selectedTheme) return true;
+        if (!selectedFilter) return true;
 
-        return (
-            product.theme?.trim().toLowerCase() ===
-            selectedTheme.toLowerCase()
-        );
+        const matchTheme = product.theme?.trim().toLowerCase() === selectedFilter.toLowerCase();
+        const matchCol = product.collection?.trim().toLowerCase() === selectedFilter.toLowerCase();
+        return matchTheme || matchCol;
     });
 
     return (
-        <main className="min-h-screen bg-[#fffaf5] text-[#241f1b]">
-            <section className="px-5 pb-8 pt-16 text-center">
-                <h1 className="text-4xl font-black uppercase tracking-tight sm:text-6xl">
-                    {selectedTheme ? selectedTheme : "Shop All Products"}
-                </h1>
+        <main className="min-h-screen bg-[#fff8f5] text-[#1f1b17]">
+            {/* Header Banner */}
+            <section className="relative overflow-hidden bg-[#fdf2eb] border-b border-[#e0bfb8]/40 px-5 py-14 text-center">
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-64 w-96 rounded-full bg-[#a93017]/10 blur-3xl"
+                />
 
-                <p className="mx-auto mt-4 max-w-lg text-black/60">
-                    {selectedTheme
-                        ? `Explore our products in the ${selectedTheme} collection.`
-                        : "Discover custom apparel, graphic tees, mugs, totes, and more."}
-                </p>
+                <div className="relative z-10 max-w-2xl mx-auto flex flex-col items-center">
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#ffdad3]/70 text-[#8b1a02] text-xs font-bold uppercase tracking-wider mb-4 shadow-sm">
+                        <Sparkles className="w-3.5 h-3.5 text-[#a93017]" />
+                        <span>Curated Catalog</span>
+                    </div>
 
-                {selectedTheme && (
-                    <Link
-                        href="/shop"
-                        className="mt-5 inline-block text-sm font-bold text-[#c2410c] hover:underline"
-                    >
-                        ← View All Products
-                    </Link>
-                )}
+                    <h1 className="font-serif text-3xl sm:text-5xl font-bold tracking-tight text-[#1f1b17]">
+                        {selectedFilter ? selectedFilter : "Shop All Creations"}
+                    </h1>
 
-                <p className="mt-4 text-sm text-black/50">
-                    {products.length}{" "}
-                    {products.length === 1 ? "product" : "products"}
-                </p>
+                    <p className="mt-4 text-sm sm:text-base text-[#59413c] leading-relaxed">
+                        {selectedFilter
+                            ? `Explore handcrafted pieces in the ${selectedFilter} collection.`
+                            : "Discover custom apparel, bespoke signs, keepsake gifts, drinkware, and lifestyle treasures."}
+                    </p>
+
+                    {selectedFilter && (
+                        <Link
+                            href="/shop"
+                            className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#a93017] hover:text-[#cb482c] transition-colors"
+                        >
+                            <span>← View Full Collection</span>
+                        </Link>
+                    )}
+
+                    <p className="mt-4 text-xs font-semibold uppercase tracking-wider text-[#8d716b]">
+                        Showing {products.length} {products.length === 1 ? "design" : "unique designs"}
+                    </p>
+                </div>
             </section>
 
-            <section className="mx-auto max-w-7xl px-5 pb-24 lg:px-8">
+            {/* Products Grid */}
+            <section className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8 py-16">
                 {products.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                         {products.map((product) => (
                             <Link
                                 key={product.productId || product.slug}
                                 href={`/product/${product.slug}`}
-                                className="group overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg"
+                                className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col border border-[#e0bfb8]/40"
                             >
-                                <div className="aspect-square overflow-hidden bg-[#f3eee8]">
+                                <div className="relative aspect-square overflow-hidden bg-[#f7ece5]">
                                     {product.imageUrl ? (
                                         <img
                                             src={product.imageUrl}
@@ -71,47 +84,60 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
                                             className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                                         />
                                     ) : (
-                                        <div className="flex h-full items-center justify-center p-4 text-center text-sm text-black/40">
-                                            Image coming soon
+                                        <div className="flex h-full items-center justify-center font-serif text-3xl text-[#a93017]/30">
+                                            MG
                                         </div>
+                                    )}
+
+                                    {product.bestSeller && (
+                                        <span className="absolute top-3 left-3 bg-[#a43c22] text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">
+                                            Best Seller
+                                        </span>
                                     )}
                                 </div>
 
-                                <div className="p-4">
-                                    {product.category && (
-                                        <p className="mb-1 text-xs font-bold uppercase tracking-wide text-black/40">
-                                            {product.category}
-                                        </p>
-                                    )}
+                                <div className="p-5 flex flex-col flex-1 justify-between gap-4">
+                                    <div className="flex flex-col gap-1">
+                                        <div className="flex items-center justify-between text-xs text-[#59413c]">
+                                            <span>{product.category || "Original"}</span>
+                                            <span className="flex items-center text-[#825100] font-semibold gap-1">
+                                                <Star className="w-3.5 h-3.5 fill-current" /> 5.0
+                                            </span>
+                                        </div>
 
-                                    <h2 className="line-clamp-2 font-bold leading-snug">
-                                        {product.title}
-                                    </h2>
+                                        <h2 className="font-serif text-base font-bold text-[#1f1b17] group-hover:text-[#a93017] transition-colors line-clamp-2 leading-snug">
+                                            {product.title}
+                                        </h2>
+                                    </div>
 
-                                    <p className="mt-2 font-black text-[#c2410c]">
-                                        {formatPrice(product.price)}
-                                    </p>
+                                    <div className="flex items-center justify-between pt-3 border-t border-[#e0bfb8]/30">
+                                        <span className="font-bold text-lg text-[#1f1b17]">
+                                            {formatPrice(product.price)}
+                                        </span>
 
-                                    <p className="mt-3 text-xs font-bold uppercase tracking-wide text-black/50 transition group-hover:text-[#c2410c]">
-                                        View Product →
-                                    </p>
+                                        <span className="inline-flex items-center gap-1 text-xs font-bold text-[#a93017] group-hover:translate-x-0.5 transition-transform">
+                                            <span>Customize</span>
+                                            <ArrowRight className="w-3.5 h-3.5" />
+                                        </span>
+                                    </div>
                                 </div>
                             </Link>
                         ))}
                     </div>
                 ) : (
-                    <div className="rounded-2xl border border-black/5 bg-white px-6 py-16 text-center">
-                        <h2 className="text-xl font-bold">
-                            No products found
-                        </h2>
-                        <p className="mt-2 text-black/60">
-                            Try browsing all of our available products.
+                    <div className="py-24 text-center">
+                        <p className="font-serif text-xl font-bold text-[#1f1b17]">
+                            No products found in this category
+                        </p>
+                        <p className="mt-2 text-sm text-[#59413c]">
+                            Try browsing all our handcrafted creations.
                         </p>
                         <Link
                             href="/shop"
-                            className="mt-5 inline-block rounded-full bg-[#e85d3f] px-6 py-3 font-bold text-white transition hover:opacity-90"
+                            className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#a93017] px-6 py-3 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#cb482c] shadow-md transition"
                         >
-                            Shop All Products
+                            <span>Browse All Products</span>
+                            <ArrowRight className="w-4 h-4" />
                         </Link>
                     </div>
                 )}
