@@ -294,12 +294,43 @@ export async function POST(request: Request) {
         }
 
         return Response.json({ url: session.url });
-    } catch (error) {
-        console.error("Checkout creation failed:", error);
+   
+} catch (error) {
+    const stripeError = error as {
+        name?: string;
+        message?: string;
+        type?: string;
+        code?: string;
+        statusCode?: number;
+        requestId?: string;
+        raw?: {
+            type?: string;
+            code?: string;
+            requestId?: string;
+        };
+        cause?: {
+            name?: string;
+            code?: string;
+            message?: string;
+        };
+    };
 
-        return Response.json(
-            { error: "Unable to start checkout. Please try again." },
-            { status: 500 }
-        );
-    }
+    console.error("CHECKOUT_DIAGNOSTICS:", {
+        name: stripeError.name,
+        message: stripeError.message ?? String(error),
+        type: stripeError.type ?? stripeError.raw?.type,
+        code: stripeError.code ?? stripeError.raw?.code,
+        statusCode: stripeError.statusCode,
+        requestId: stripeError.requestId ?? stripeError.raw?.requestId,
+        causeName: stripeError.cause?.name,
+        causeCode: stripeError.cause?.code,
+        causeMessage: stripeError.cause?.message,
+    });
+
+    return Response.json(
+        { error: "Unable to start checkout. Please try again." },
+        { status: 500 }
+    );
 }
+}
+
