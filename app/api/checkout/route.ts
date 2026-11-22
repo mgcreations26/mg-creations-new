@@ -285,9 +285,8 @@ export async function POST(request: Request) {
                 },
             ],
             metadata: { orderSource: "Website" },
-            success_url:
-                `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${origin}/checkout/cancel`,
+            success_url: `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${siteUrl}/checkout/cancel`,
         });
 
         if (!session.url) {
