@@ -1,11 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { ShoppingBag, Sparkles, Search } from "lucide-react";
+import { ShoppingBag, Sparkles, Search, Menu, X } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 
 export default function Header() {
   const { itemCount, openCart } = useCart();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const closeMobileMenu = () => setMobileMenuOpen(false);
 
   return (
     <header className="sticky top-0 z-50 shadow-[0_12px_32px_-8px_rgba(169,48,23,0.08),0_4px_12px_-2px_rgba(31,27,23,0.04)]">
@@ -36,7 +40,7 @@ export default function Header() {
             </div>
           </Link>
 
-          {/* Navigation Links */}
+          {/* Desktop Navigation Links */}
           <nav
             aria-label="Main navigation"
             className="hidden md:flex items-center gap-6 lg:gap-8 text-xs font-bold tracking-wider uppercase text-[#59413c]"
@@ -74,7 +78,7 @@ export default function Header() {
           </nav>
 
           {/* Action Icons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/shop"
               className="hidden lg:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#fdf2eb] text-[#59413c] hover:bg-[#f7ece5] hover:text-[#1f1b17] transition-all text-xs font-semibold"
@@ -96,9 +100,83 @@ export default function Header() {
                 </span>
               )}
             </button>
+
+            {/* Mobile Menu Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-navigation"
+              aria-label={mobileMenuOpen ? "Close menu" : "Open navigation menu"}
+              className="md:hidden p-2.5 rounded-full bg-[#fdf2eb] text-[#1f1b17] hover:bg-[#f7ece5] hover:text-[#a93017] transition-all focus:outline-none focus:ring-2 focus:ring-[#a93017]"
+            >
+              {mobileMenuOpen ? (
+                <X className="h-5 w-5" aria-hidden="true" />
+              ) : (
+                <Menu className="h-5 w-5" aria-hidden="true" />
+              )}
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Mobile Navigation Drawer / Dropdown */}
+      {mobileMenuOpen && (
+        <div
+          id="mobile-navigation"
+          className="md:hidden border-b border-[#e0bfb8]/40 bg-[#fff8f5] px-6 py-6 shadow-xl animate-in fade-in slide-in-from-top-2 duration-200"
+        >
+          <nav
+            aria-label="Mobile navigation"
+            className="flex flex-col gap-4 text-sm font-bold uppercase tracking-wider text-[#59413c]"
+          >
+            <Link
+              href="/"
+              onClick={closeMobileMenu}
+              className="py-2 hover:text-[#a93017] transition-colors border-b border-[#e0bfb8]/20"
+            >
+              Home
+            </Link>
+            <Link
+              href="/shop"
+              onClick={closeMobileMenu}
+              className="py-2 hover:text-[#a93017] transition-colors border-b border-[#e0bfb8]/20"
+            >
+              Shop All
+            </Link>
+            <Link
+              href="/themes"
+              onClick={closeMobileMenu}
+              className="py-2 hover:text-[#a93017] transition-colors border-b border-[#e0bfb8]/20"
+            >
+              Themes
+            </Link>
+            <Link
+              href="/categories"
+              onClick={closeMobileMenu}
+              className="py-2 hover:text-[#a93017] transition-colors border-b border-[#e0bfb8]/20"
+            >
+              Categories
+            </Link>
+            <Link
+              href="/moods"
+              onClick={closeMobileMenu}
+              className="py-2 hover:text-[#a93017] transition-colors"
+            >
+              Vibes & Moods
+            </Link>
+
+            <Link
+              href="/shop"
+              onClick={closeMobileMenu}
+              className="mt-2 flex items-center justify-center gap-2 rounded-full bg-[#fdf2eb] py-3 text-xs font-bold text-[#59413c] border border-[#e0bfb8]/40"
+            >
+              <Search className="w-4 h-4 text-[#8d716b]" />
+              <span>Search all designs</span>
+            </Link>
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

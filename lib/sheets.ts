@@ -4,6 +4,13 @@ export type Product = {
     title: string;
     description: string;
     price: number;
+    stylePrices?: {
+        tShirt?: number;
+        crewneck?: number;
+        hoodie?: number;
+        totebag?: number;
+        mug?: number;
+    };
     imageUrl: string;
     productType: string;
     color: string;
@@ -66,6 +73,15 @@ function isChecked(value: unknown): boolean {
     );
 }
 
+function parseStylePrice(value: unknown): number | undefined {
+    const cleaned = String(value ?? "").replace(/[^0-9.-]/g, "");
+    const parsed = Number(cleaned);
+
+    return Number.isFinite(parsed) && parsed > 0
+        ? parsed
+        : undefined;
+}
+
 export async function getProducts(): Promise<Product[]> {
     let rows: any[] = [];
     try {
@@ -101,6 +117,13 @@ export async function getProducts(): Promise<Product[]> {
                 title: rawTitle,
                 description: String(row.c[3]?.v ?? ""),
                 price: parseFloat(rawPrice) || 0,
+                stylePrices: {
+                    tShirt: parseStylePrice(row.c[13]?.v),
+                    crewneck: parseStylePrice(row.c[14]?.v),
+                    hoodie: parseStylePrice(row.c[15]?.v),
+                    totebag: parseStylePrice(row.c[16]?.v),
+                    mug: parseStylePrice(row.c[17]?.v),
+                },
                 imageUrl: String(row.c[6]?.v ?? ""),
                 productType: String(row.c[7]?.v ?? ""),
                 category: String(row.c[7]?.v ?? "General"),
@@ -147,6 +170,30 @@ export async function getProducts(): Promise<Product[]> {
             existing.color = existing.color
                 ? `${existing.color}, ${item.color}`
                 : item.color;
+        }
+
+        // Merge style prices without overwriting an existing price.
+        const styleKeys: (keyof NonNullable<Product["stylePrices"]>)[] = [
+            "tShirt", "crewneck", "hoodie", "totebag", "mug"
+        ];
+
+        for (const key of styleKeys) {
+            const currentPrice = existing.stylePrices?.[key];
+            const incomingPrice = item.stylePrices?.[key];
+
+            if (currentPrice === undefined && incomingPrice !== undefined) {
+                existing.stylePrices ??= {};
+                existing.stylePrices[key] = incomingPrice;
+            } else if (
+                currentPrice !== undefined &&
+                incomingPrice !== undefined &&
+                currentPrice !== incomingPrice
+            ) {
+                console.warn(
+                    `Conflicting ${key} prices for "${item.title}": ` +
+                    `${currentPrice} and ${incomingPrice}. Keeping the first.`
+                );
+            }
         }
 
         if (item.trending) existing.trending = true;
@@ -316,13 +363,22 @@ export async function getThemes(): Promise<Theme[]> {
 }
 
 
-export function formatPrice(price: number): string {
+export function parseCSVList(value?: string): string[] {
+    if (!value) return [];
+    return value.split(',').map(v => v.trim()).filter(v => v.length > 0);
+}
+
+
+export function formatPrice(price: number | string): string {
+    const numeric = typeof price === "number"
+        ? price
+        : parseFloat(String(price ?? "0").replace(/[^0-9.]/g, "")) || 0;
+
     return new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "USD",
-    }).format(price || 0);
+    }).format(numeric);
 }
-
 
 async function fetchSheetByGid(gid: string) {
     if (!SHEET_ID) return [];

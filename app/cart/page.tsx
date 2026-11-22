@@ -97,6 +97,11 @@ export default function CartPage() {
                       >
                         {item.title}
                       </Link>
+                      {item.selectedStyle && item.selectedStyle !== "Standard" && (
+                        <p className="mt-0.5 text-xs text-[#59413c]">
+                          Style: {item.selectedStyle}
+                        </p>
+                      )}
                       {(item.selectedColor || item.color) && (
                         <p className="mt-0.5 text-xs text-[#59413c]">
                           Color: {item.selectedColor || item.color}
@@ -108,7 +113,7 @@ export default function CartPage() {
                         </p>
                       )}
                       <p className="mt-2 text-sm font-bold text-[#a93017]">
-                        {formatPrice(item.price)}
+                        {formatPrice(item.unitPrice || item.price)}
                       </p>
                     </div>
 
@@ -142,7 +147,7 @@ export default function CartPage() {
                       </button>
                     </div>
                     <p className="text-base font-bold text-[#1f1b17]">
-                      {formatPrice(item.price * item.quantity)}
+                      {formatPrice((item.unitPrice || item.price) * item.quantity)}
                     </p>
                   </div>
                 </div>

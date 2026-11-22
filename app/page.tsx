@@ -96,12 +96,15 @@ export default async function HomePage() {
                     "https://lh3.googleusercontent.com/aida-public/AB6AXuB3wPwD32KF_1FIxTISD9NkuUq6-D4fsoakB_DLIsrAdi8mUrLX0boll_tWe1uyVSrwcRlqwL9OFiMW8nyvRStRdq_ULHtEVpoobVZH71O58cfmNyrrH9GwqIXGHPmnPxn9Sb7oNWFUg16T51QbwLX0GfXjmFotLUvPnYyYESn1gU01-tk4atOB9HhJ0y5UOs1-ov43zNQSdf7ahTecCnn-on22kG1jOyO15rMRcGU8"
                   }
                   alt="MG Creations Handcrafted Studio Item"
+                  width={800}
+                  height={1000}
+                  loading="eager"
                   className="w-full h-full object-cover"
                 />
 
                 {/* Studio Pill */}
-                <div className="absolute bottom-6 left-6 right-6 p-4 rounded-2xl bg-white/90 backdrop-blur-md shadow-lg flex items-center justify-between border border-[#e0bfb8]/40">
-                  <div className="flex items-center gap-3">
+                <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 p-3 sm:p-4 rounded-2xl bg-white/90 backdrop-blur-md shadow-lg flex items-center justify-between border border-[#e0bfb8]/40">
+                  <div className="flex items-center gap-2 sm:gap-3">
                     <span className="relative flex h-3 w-3">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#a93017] opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-3 w-3 bg-[#a93017]"></span>
@@ -115,7 +118,7 @@ export default async function HomePage() {
                       </span>
                     </div>
                   </div>
-                  <span className="text-[10px] font-bold text-[#a93017] uppercase tracking-wider bg-[#ffdad3]/60 px-2.5 py-1 rounded-full">
+                  <span className="text-[10px] font-bold text-[#a93017] uppercase tracking-wider bg-[#ffdad3]/60 px-2.5 py-1 rounded-full shrink-0">
                     Artisanal
                   </span>
                 </div>
@@ -211,11 +214,19 @@ export default async function HomePage() {
               >
                 {/* Image Container */}
                 <div className="relative w-full aspect-square bg-[#f7ece5] overflow-hidden">
-                  <Link href={`/product/${product.slug}`} className="block w-full h-full">
+                  <Link
+                    href={`/product/${product.slug}`}
+                    aria-hidden="true"
+                    tabIndex={-1}
+                    className="block w-full h-full"
+                  >
                     {product.imageUrl ? (
                       <img
                         src={product.imageUrl}
                         alt={product.title}
+                        width={600}
+                        height={600}
+                        loading="lazy"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     ) : (
@@ -264,6 +275,7 @@ export default async function HomePage() {
 
                     <Link
                       href={`/product/${product.slug}`}
+                      aria-label={`Customize ${product.title}`}
                       className="px-3.5 py-1.5 rounded-full bg-[#a93017] text-white text-xs font-bold hover:bg-[#cb482c] transition-all flex items-center gap-1.5 shadow-sm"
                     >
                       <span>Customize</span>
@@ -371,6 +383,9 @@ export default async function HomePage() {
                       <img
                         src={category.imageUrl}
                         alt={category.name}
+                        width={64}
+                        height={64}
+                        loading="lazy"
                         className="w-full h-full object-cover"
                       />
                     ) : (

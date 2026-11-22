@@ -32,6 +32,10 @@ export default function CheckoutPage() {
                     items: items.map((item) => ({
                         productId: item.productId,
                         quantity: item.quantity,
+                        selectedStyle:
+                            item.selectedStyle === "default" || item.selectedStyle === "Standard"
+                                ? undefined
+                                : item.selectedStyle,
                         selectedColor:
                             item.selectedColor === "default"
                                 ? undefined
@@ -40,6 +44,7 @@ export default function CheckoutPage() {
                             item.selectedSize === "default"
                                 ? undefined
                                 : item.selectedSize,
+                        unitPrice: item.unitPrice || item.price,
                     })),
                 }),
             });

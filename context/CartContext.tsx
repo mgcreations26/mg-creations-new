@@ -6,11 +6,14 @@ import { Product } from "@/lib/sheets";
 export type CartItem = Product & {
     cartKey: string;
     quantity: number;
+    selectedStyle?: string;
     selectedColor?: string;
     selectedSize?: string;
+    unitPrice?: number;
 };
 
 export type CartContextType = {
+    // Primary API (used by /cart)
     items: CartItem[];
     itemCount: number;
     subtotal: number;
@@ -18,10 +21,25 @@ export type CartContextType = {
     isOpen: boolean;
     openCart: () => void;
     closeCart: () => void;
-    addToCart: (product: Product, quantity?: number) => void;
+    addToCart: (
+        product: Product,
+        quantity?: number,
+        selectedColor?: string,
+        selectedSize?: string,
+        selectedStyle?: string,
+        unitPrice?: number
+    ) => void;
     updateQuantity: (cartKey: string, quantity: number) => void;
     removeItem: (cartKey: string) => void;
     clearCart: () => void;
+
+    // Legacy Aliases (used by CartDrawer)
+    cart: CartItem[];
+    isCartOpen: boolean;
+    setIsCartOpen: (open: boolean) => void;
+    removeFromCart: (cartKey: string) => void;
+    totalCount: number;
+    totalPrice: number;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -31,7 +49,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const [isOpen, setIsOpen] = useState(false);
     const [hydrated, setHydrated] = useState(false);
 
-    // Load cart from localStorage on mount
+    // Load cart from localStorage
     useEffect(() => {
         try {
             const stored = localStorage.getItem("mg_cart");
@@ -39,18 +57,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                 setItems(JSON.parse(stored));
             }
         } catch {
-            // Ignore read errors
+            // Ignore storage read error
         }
         setHydrated(true);
     }, []);
 
-    // Save cart to localStorage on change
+    // Save cart to localStorage
     useEffect(() => {
         if (hydrated) {
             try {
                 localStorage.setItem("mg_cart", JSON.stringify(items));
             } catch {
-                // Ignore write errors
+                // Ignore storage write error
             }
         }
     }, [items, hydrated]);
@@ -58,8 +76,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const openCart = () => setIsOpen(true);
     const closeCart = () => setIsOpen(false);
 
-    const addToCart = (product: Product, quantity: number = 1) => {
-        const cartKey = `${product.slug}-${product.color || "default"}-${product.size || "default"}`;
+    const addToCart = (
+        product: Product,
+        quantity: number = 1,
+        selectedColor?: string,
+        selectedSize?: string,
+        selectedStyle?: string,
+        unitPrice?: number
+    ) => {
+        const style = selectedStyle || product.style || "Standard";
+        const color = selectedColor || product.color || "default";
+        const size = selectedSize || product.size || "default";
+        const finalPrice = typeof unitPrice === "number" && unitPrice > 0 ? unitPrice : product.price;
+        const cartKey = `${product.slug}-${style}-${color}-${size}`;
 
         setItems((prev) => {
             const existing = prev.find((item) => item.cartKey === cartKey);
@@ -70,7 +99,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                         : item
                 );
             }
-            return [...prev, { ...product, cartKey, quantity }];
+            return [
+                ...prev,
+                {
+                    ...product,
+                    price: finalPrice,
+                    unitPrice: finalPrice,
+                    cartKey,
+                    quantity,
+                    selectedStyle: style,
+                    selectedColor: color,
+                    selectedSize: size,
+                },
+            ];
         });
 
         setIsOpen(true);
@@ -97,7 +138,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     };
 
     const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-    const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const subtotal = items.reduce((sum, item) => sum + (item.unitPrice || item.price) * item.quantity, 0);
 
     return (
         <CartContext.Provider
@@ -113,6 +154,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                 updateQuantity,
                 removeItem,
                 clearCart,
+
+                // Legacy aliases
+                cart: items,
+                isCartOpen: isOpen,
+                setIsCartOpen: setIsOpen,
+                removeFromCart: removeItem,
+                totalCount: itemCount,
+                totalPrice: subtotal,
             }}
         >
             {children}

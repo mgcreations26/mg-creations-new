@@ -1,3 +1,4 @@
+
 import Stripe from "stripe";
 import { getProducts } from "@/lib/sheets";
 
@@ -6,6 +7,7 @@ export const runtime = "nodejs";
 type CheckoutItem = {
     productId: string;
     quantity: number;
+    selectedStyle?: string;
     selectedColor?: string;
     selectedSize?: string;
 };
@@ -24,6 +26,17 @@ function getOptions(value: unknown): string[] {
         .map((option) => option.trim())
         .filter(Boolean);
 }
+
+const CATEGORY_STYLE_PRICES: Record<
+    string,
+    { style: string; priceKey: "tShirt" | "crewneck" | "hoodie" | "totebag" | "mug" }
+> = {
+    "t-shirt": { style: "T-Shirt", priceKey: "tShirt" },
+    sweatshirt: { style: "Crewneck", priceKey: "crewneck" },
+    hoodie: { style: "Hoodie", priceKey: "hoodie" },
+    "tote bag": { style: "Totebag", priceKey: "totebag" },
+    mug: { style: "Mug", priceKey: "mug" },
+};
 
 export async function POST(request: Request) {
     try {
@@ -102,6 +115,8 @@ export async function POST(request: Request) {
                 !Number.isSafeInteger(entry.quantity) ||
                 (entry.quantity as number) < 1 ||
                 (entry.quantity as number) > 99 ||
+                (entry.selectedStyle !== undefined &&
+                    typeof entry.selectedStyle !== "string") ||
                 (entry.selectedColor !== undefined &&
                     typeof entry.selectedColor !== "string") ||
                 (entry.selectedSize !== undefined &&
@@ -116,6 +131,7 @@ export async function POST(request: Request) {
             items.push({
                 productId: entry.productId,
                 quantity: entry.quantity as number,
+                selectedStyle: entry.selectedStyle as string | undefined,
                 selectedColor: entry.selectedColor as string | undefined,
                 selectedSize: entry.selectedSize as string | undefined,
             });
@@ -130,21 +146,64 @@ export async function POST(request: Request) {
                 (candidate) => candidate.productId === item.productId
             );
 
-            const price = Number(product?.price);
-            const unitAmount = Math.round(price * 100);
+            if (!product) {
+                return Response.json(
+                    { error: "A product is unavailable. Please refresh your cart." },
+                    { status: 400 }
+                );
+            }
+
+            const category = String(product.productType || "")
+                .trim()
+                .toLowerCase();
+
+            const stylePricing = CATEGORY_STYLE_PRICES[category];
+
+            let effectivePrice = Number(product.price);
+            let confirmedStyle = "";
+
+            if (stylePricing) {
+                const requestedStyle = item.selectedStyle?.trim();
+
+                if (
+                    requestedStyle &&
+                    requestedStyle !== "Standard" &&
+                    requestedStyle !== stylePricing.style
+                ) {
+                    return Response.json(
+                        { error: "The selected product style is unavailable." },
+                        { status: 400 }
+                    );
+                }
+
+                const configuredPrice =
+                    product.stylePrices?.[stylePricing.priceKey];
+
+                if (configuredPrice !== undefined) {
+                    effectivePrice = configuredPrice;
+                    confirmedStyle = stylePricing.style;
+                }
+            } else if (
+                item.selectedStyle &&
+                item.selectedStyle !== "Standard" &&
+                item.selectedStyle !== "default"
+            ) {
+                return Response.json(
+                    { error: "This product does not offer that style." },
+                    { status: 400 }
+                );
+            }
+
+            const unitAmount = Math.round(effectivePrice * 100);
 
             if (
-                !product ||
-                !Number.isFinite(price) ||
-                price <= 0 ||
+                !Number.isFinite(effectivePrice) ||
+                effectivePrice <= 0 ||
                 !Number.isSafeInteger(unitAmount) ||
                 unitAmount < 1
             ) {
                 return Response.json(
-                    {
-                        error:
-                            "A product is unavailable. Please refresh your cart.",
-                    },
+                    { error: "A product has an invalid price. Please contact us." },
                     { status: 400 }
                 );
             }
@@ -173,6 +232,7 @@ export async function POST(request: Request) {
             }
 
             const variant = [
+                confirmedStyle,
                 item.selectedColor,
                 item.selectedSize,
             ]
@@ -191,6 +251,15 @@ export async function POST(request: Request) {
                         ...(product.description
                             ? { description: product.description }
                             : {}),
+                        metadata: {
+                            productId: product.productId,
+                            productName: product.title,
+                            selectedStyle: item.selectedStyle || "",
+                            selectedColor: item.selectedColor || "",
+                            selectedSize: item.selectedSize || "",
+                            unitPrice: (unitAmount / 100).toString(),
+                            orderSource: "Website",
+                        },
                     },
                 },
             });
@@ -201,6 +270,18 @@ export async function POST(request: Request) {
         const session = await stripe.checkout.sessions.create({
             mode: "payment",
             line_items: lineItems,
+            shipping_address_collection: { allowed_countries: ["US"] },
+            phone_number_collection: { enabled: true },
+            shipping_options: [
+                {
+                    shipping_rate_data: {
+                        type: "fixed_amount",
+                        fixed_amount: { amount: 595, currency: "usd" },
+                        display_name: "Flat-Rate Shipping",
+                    },
+                },
+            ],
+            metadata: { orderSource: "Website" },
             success_url:
                 `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${origin}/checkout/cancel`,
@@ -220,4 +301,3 @@ export async function POST(request: Request) {
         );
     }
 }
-

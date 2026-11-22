@@ -114,8 +114,14 @@ export default function CartDrawer() {
                         {formatPrice(item.price)}
                       </p>
 
-                      {(item.selectedColor || item.color) && (
+                      {item.selectedStyle && item.selectedStyle !== "Standard" && (
                         <p className="mt-1 text-[11px] text-[#59413c]">
+                          Style: {item.selectedStyle}
+                        </p>
+                      )}
+
+                      {(item.selectedColor || item.color) && (
+                        <p className="mt-0.5 text-[11px] text-[#59413c]">
                           Color: {item.selectedColor || item.color}
                         </p>
                       )}
@@ -156,7 +162,7 @@ export default function CartDrawer() {
                       </div>
 
                       <span className="ml-auto text-xs font-bold text-[#1f1b17]">
-                        {formatPrice(item.price * item.quantity)}
+                        {formatPrice((item.unitPrice || item.price) * item.quantity)}
                       </span>
                     </div>
                   </div>

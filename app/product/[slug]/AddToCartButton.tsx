@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useCart } from "@/app/context/CartContext";
+import { useCart } from "@/context/CartContext";
 import { Product } from "@/lib/sheets";
 import { ShoppingBag, Check, Plus, Minus } from "lucide-react";
 
