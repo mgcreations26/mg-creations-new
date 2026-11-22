@@ -1,5 +1,5 @@
 import { POST } from '@/app/api/checkout/route';
-import { Request } from 'node-fetch';
+// Using global Request (Node 18+). No external import needed.
 
 // ---------------------------------------------------------------------------
 // Mock Stripe – we replace the actual Stripe constructor with a stub that
