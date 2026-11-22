@@ -50,32 +50,35 @@ export async function POST(request: Request) {
             );
         }
 
-        let origin: string;
+        let allowedOrigins: string[] = [];
 
-        try {
-            const parsedUrl = new URL(siteUrl);
+  // Parse the site URL defined in NEXT_PUBLIC_SITE_URL
+  try {
+    const parsedUrl = new URL(siteUrl);
 
-            if (
-                parsedUrl.protocol !== "https:" &&
-                parsedUrl.hostname !== "localhost"
-            ) {
-                return Response.json(
-                    { error: "Checkout URL configuration is invalid." },
-                    { status: 500 }
-                );
-            }
+    // Only allow HTTPS (or localhost for local dev)
+    if (parsedUrl.protocol !== "https:" && parsedUrl.hostname !== "localhost") {
+      return Response.json(
+        { error: "Checkout URL configuration is invalid." },
+        { status: 500 }
+      );
+    }
 
-            origin = parsedUrl.origin;
-        } catch {
-            return Response.json(
-                { error: "Checkout URL configuration is invalid." },
-                { status: 500 }
-            );
-        }
+    const baseOrigin = parsedUrl.origin; // e.g. https://mgcreations.store
+    allowedOrigins.push(baseOrigin);
+    // Add www variant if not already present
+    if (!parsedUrl.hostname.startsWith("www.")) {
+      allowedOrigins.push(`https://www.${parsedUrl.hostname}`);
+    }
+  } catch {
+    return Response.json(
+      { error: "Checkout URL configuration is invalid." },
+      { status: 500 }
+    );
+  }
 
         const requestOrigin = request.headers.get("origin");
-
-        if (requestOrigin && requestOrigin !== origin) {
+        if (requestOrigin && !allowedOrigins.includes(requestOrigin)) {
             return Response.json(
                 { error: "Invalid request origin." },
                 { status: 403 }
