@@ -315,17 +315,17 @@ export async function POST(request: Request) {
         };
     };
 
-    console.error("CHECKOUT_DIAGNOSTICS:", {
-        name: stripeError.name,
-        message: stripeError.message ?? String(error),
-        type: stripeError.type ?? stripeError.raw?.type,
-        code: stripeError.code ?? stripeError.raw?.code,
-        statusCode: stripeError.statusCode,
-        requestId: stripeError.requestId ?? stripeError.raw?.requestId,
-        causeName: stripeError.cause?.name,
-        causeCode: stripeError.cause?.code,
-        causeMessage: stripeError.cause?.message,
-    });
+   console.error("CHECKOUT_DIAGNOSTICS " + JSON.stringify({
+    name: stripeError.name,
+    message: stripeError.message ?? String(error),
+    type: stripeError.type ?? stripeError.raw?.type,
+    code: stripeError.code ?? stripeError.raw?.code,
+    statusCode: stripeError.statusCode,
+    requestId: stripeError.requestId ?? stripeError.raw?.requestId,
+    causeName: stripeError.cause?.name,
+    causeCode: stripeError.cause?.code,
+    causeMessage: stripeError.cause?.message,
+}));
 
     return Response.json(
         { error: "Unable to start checkout. Please try again." },
