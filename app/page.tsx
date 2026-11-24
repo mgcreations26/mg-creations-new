@@ -1,3 +1,4 @@
+﻿import { getShortDescription } from "@/lib/text";
 import Link from "next/link";
 import { getProducts, getCategories, getThemes, formatPrice } from "@/lib/sheets";
 import { Sparkles, ArrowRight, Star, ShieldCheck, Heart, PackageCheck, Zap } from "lucide-react";
@@ -264,7 +265,7 @@ export default async function HomePage() {
                     </Link>
 
                     <p className="text-xs text-[#59413c] line-clamp-1">
-                      {product.description || "Handcrafted with personal care"}
+                      {getShortDescription(product.description, "Handcrafted with personal care")}
                     </p>
                   </div>
 
@@ -407,3 +408,4 @@ export default async function HomePage() {
     </main>
   );
 }
+

@@ -1,4 +1,4 @@
-
+﻿
 import Stripe from "stripe";
 import { getProducts } from "@/lib/sheets";
 
@@ -251,8 +251,8 @@ export async function POST(request: Request) {
                         name: variant
                             ? `${product.title} — ${variant}`
                             : product.title,
-                        ...(product.description
-                            ? { description: product.description }
+                        ...(product.description && product.description.trim()
+                            ? { description: product.description.trim().slice(0, 490) }
                             : {}),
                         metadata: {
                             productId: product.productId,
@@ -333,4 +333,5 @@ export async function POST(request: Request) {
     );
 }
 }
+
 
