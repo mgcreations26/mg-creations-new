@@ -46,3 +46,5 @@ app/page.tsx.bak
 
 # Backup files
 *.bak
+
+firebase-debug.log
