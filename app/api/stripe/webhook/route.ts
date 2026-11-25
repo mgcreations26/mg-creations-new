@@ -1,11 +1,11 @@
-﻿import Stripe from "stripe";
+import Stripe from "stripe";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-    const secretKey = process.env.STRIPE_SECRET_KEY;
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-    const appsScriptUrl = process.env.NEXT_PUBLIC_APPS_SCRIPT_URL;
+    const secretKey = process.env.STRIPE_SECRET_KEY?.trim();
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
+    const appsScriptUrl = process.env.NEXT_PUBLIC_APPS_SCRIPT_URL?.trim();
     const signature = request.headers.get("stripe-signature");
 
     if (!secretKey || !webhookSecret || !signature) {

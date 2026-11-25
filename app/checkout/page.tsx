@@ -49,8 +49,13 @@ export default function CheckoutPage() {
                 }),
             });
 
-            const data: { url?: string; error?: string } =
-                await response.json();
+            const rawText = await response.text();
+            let data: { url?: string; error?: string } = {};
+            try {
+                data = JSON.parse(rawText);
+            } catch {
+                // Non-JSON server error (e.g., 502/504)
+            }
 
             if (!response.ok || !data.url) {
                 throw new Error(

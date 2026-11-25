@@ -33,6 +33,10 @@ env:
   # Run: npx firebase-tools@latest apphosting:secrets:set STRIPE_WEBHOOK_SECRET
   - variable: STRIPE_SECRET_KEY
     secret: STRIPE_SECRET_KEY
+    availability:
+      - RUNTIME
 
   - variable: STRIPE_WEBHOOK_SECRET
     secret: STRIPE_WEBHOOK_SECRET
+    availability:
+      - RUNTIME
