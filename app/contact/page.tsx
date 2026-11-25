@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useState } from "react";
@@ -67,11 +67,11 @@ export default function ContactPage() {
                             </div>
                             <h2 className="mt-4 text-sm font-black uppercase tracking-widest text-black/40">Email Us</h2>
                             <a
-                                href="mailto:hello@mgcreations.store"
+                                href="mailto:info@crafteemama.shop"
                                 id="contact-email-link"
                                 className="mt-1 block text-lg font-black text-[#241f1b] hover:text-[#e85d3f] transition-colors"
                             >
-                                hello@mgcreations.store
+                                info@crafteemama.shop
                             </a>
                         </div>
 
@@ -252,3 +252,4 @@ export default function ContactPage() {
         </main >
     );
 }
+

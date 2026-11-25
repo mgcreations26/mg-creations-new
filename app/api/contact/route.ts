@@ -1,4 +1,4 @@
-
+﻿
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
 
         const gmailUser = process.env.GMAIL_USER;
         const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
-        const toEmail = process.env.CONTACT_TO_EMAIL;
+        const toEmail = process.env.CONTACT_TO_EMAIL || "info@crafteemama.shop";
 
         if (!gmailUser || !gmailAppPassword || !toEmail) {
             console.error(
@@ -157,3 +157,4 @@ export async function POST(req: NextRequest) {
         );
     }
 }
+

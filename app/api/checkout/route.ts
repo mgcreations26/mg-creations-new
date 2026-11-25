@@ -276,13 +276,21 @@ export async function POST(request: Request) {
             shipping_address_collection: { allowed_countries: ["US"] },
             phone_number_collection: { enabled: true },
             shipping_options: [
-                {
-                    shipping_rate_data: {
-                        type: "fixed_amount",
-                        fixed_amount: { amount: 595, currency: "usd" },
-                        display_name: "Flat-Rate Shipping",
+                lineItems.reduce((sum, li) => sum + (li.price_data?.unit_amount ?? 0) * (li.quantity ?? 1), 0) >= 5000
+                    ? {
+                        shipping_rate_data: {
+                            type: "fixed_amount",
+                            fixed_amount: { amount: 0, currency: "usd" },
+                            display_name: "Free Shipping (Orders $50+)",
+                        },
+                    }
+                    : {
+                        shipping_rate_data: {
+                            type: "fixed_amount",
+                            fixed_amount: { amount: 595, currency: "usd" },
+                            display_name: "Flat-Rate Shipping",
+                        },
                     },
-                },
             ],
             metadata: { orderSource: "Website" },
             success_url: `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
@@ -333,5 +341,6 @@ export async function POST(request: Request) {
     );
 }
 }
+
 
 

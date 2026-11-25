@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -17,7 +17,7 @@ export default function Header() {
       <div className="w-full bg-[#a93017] text-white py-1.5 px-4 text-center text-xs font-semibold tracking-wide">
         <div className="max-w-[1320px] mx-auto flex items-center justify-center gap-2">
           <Sparkles className="w-3.5 h-3.5 text-[#ffdad3]" />
-          <span>Free shipping on orders over $65 • Handcrafted with love in Austin, TX</span>
+          <span>Free shipping on orders over $50 • Handcrafted with love in Austin, TX</span>
         </div>
       </div>
 
@@ -180,3 +180,4 @@ export default function Header() {
     </header>
   );
 }
+
