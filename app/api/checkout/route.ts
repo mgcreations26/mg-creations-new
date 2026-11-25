@@ -1,4 +1,4 @@
-﻿
+
 import Stripe from "stripe";
 import { getProducts } from "@/lib/sheets";
 
@@ -40,8 +40,8 @@ const CATEGORY_STYLE_PRICES: Record<
 
 export async function POST(request: Request) {
     try {
-        const secretKey = process.env.STRIPE_SECRET_KEY;
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+        const secretKey = process.env.STRIPE_SECRET_KEY?.trim();
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
 
         if (!secretKey || !siteUrl) {
             return Response.json(
@@ -188,8 +188,9 @@ export async function POST(request: Request) {
                 }
             } else if (
                 item.selectedStyle &&
-                item.selectedStyle !== "Standard" &&
-                item.selectedStyle !== "default"
+                !["standard", "default", "one size", category].includes(
+                    item.selectedStyle.trim().toLowerCase()
+                )
             ) {
                 return Response.json(
                     { error: "This product does not offer that style." },
